@@ -31,9 +31,6 @@
 
 #define PI 3.141592653589793
 
-#define TROPOPAUSE 10000
-#define TROPO_MAX_WIND 25  // meters per second
-#define STRAT_MAX_WIND 100 // meters per second
 #define WIND_TURBULENCE 10 // chance of the wind changing the bearing by up to 1 degree per cycle of the simulation
 
 //#define LAUNCH_LAT 52.213389
@@ -43,7 +40,7 @@
 #define LAUNCH_ALT 203
 
 #define TERMINAL_VELOCITY 40 // meters per second
-#define ASCENT_RATE 5 // meters per second
+#define ASCENT_RATE 1 // meters per second
 #define DESCENT_RATE 5 // meters per second
 
 //should take 20secs to do 100m
@@ -53,25 +50,21 @@
 //http://en.wikipedia.org/wiki/Atmospheric_pressure
 #define LAUNCH_KPA 100
 #define BURST_KPA 0.02
-#define GPS_HZ 100
-#define SIM_HZ 50
+#define GPS_HZ 1
 
-/*
+// SIM_HZ - the internal speed of the simulation
+// if you are going to change this then you will need to scale simAccel acordingly
+// Faster updates result in smaller distances per step being fed into the Vincenty Direct 
+// Equation.  Due to the ATMEGA's 8bit arcitecture and 4 byte floats, it looses precision
+// and Lon stops updating.
 
-hz  |  millis
-1      1000
-10     100
-100    10
-
-
-*/
-
+#define SIM_HZ 10
 #define DEBUG 1
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 int Status =0;
 
-float simAccel = 2.5;
+float simAccel = 10;
 
 time_t Now;
 char buf[128];
@@ -85,10 +78,16 @@ float strat_wind_rate_mod = 0;
 //float lat_wind = 0;
 //float lon_wind = 0;
 float windBearing = 0.0;
-float windSpeed = 20.0;
+
+float windSpeed = 5.0;
+
 float distancePerStep = 0.0;
 float Drag;
 
+
+long speedTest =0;
+float msTest =0;
+float speedTestResult = 0;
 
 byte balloon[8] = {B01110, B11111, B11111, B11111, B01110, B00100, B01110, B01110};
 byte chute[8] =   {B11111, B11111, B10001, B10001, B01010, B00100, B01110, B01110};
@@ -140,6 +139,8 @@ long tempBits = 0;                               // create a long of random bits
 
  lcd.clear();
 
+ speedTest = millis();
+ msTest = CurAlt;
 }
 
 
@@ -147,9 +148,27 @@ void loop()
 {
   Now = now();
   float windOffset = random(10);
-  if (random(WIND_TURBULENCE)==1) windBearing += (windOffset-5)/10;
+  //if (random(WIND_TURBULENCE)==1) windBearing += (windOffset-5)/10;
   if (windBearing>359) windBearing = 0;
   if (windBearing<0) windBearing = 359;
+  windBearing+=0.01;
+  //windBearing=0;
+  
+  
+  
+  if (millis()>=(speedTest+10000))
+  {
+    if(DEBUG) Serial.println();
+    speedTestResult = (CurAlt-msTest)/10;
+    msTest=CurAlt;   
+    speedTest = millis();
+  }
+  
+  
+  
+  
+  
+  
   
   LCDFlight();
     
@@ -161,12 +180,15 @@ void loop()
       
       distancePerStep = (windSpeed/SIM_HZ)*simAccel;
       
-      updateWind(CurLat, CurLon, windBearing, distancePerStep); 
+      updateWindWalk(CurLat, CurLon, windBearing, distancePerStep); 
 
       if(DEBUG) Serial.print(" :#");
       if(DEBUG) Serial.print(millis()-update_counter);
+      if(DEBUG) Serial.print(" :m/s ");
+      if(DEBUG) Serial.print(speedTestResult);
  
       update_counter =  millis();
+      
       if(DEBUG) Serial.println();
     }
 
