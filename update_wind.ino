@@ -16,10 +16,30 @@
  * @returns (LatLon} destination point
  */
  
+
+/*
+
+Note about this function:
+------------------------
+The Vincenty Direct equation puts quite a lot of demand on the precsion of the instrument 
+that is running it.  Unfourtunatly, the Arduino with it's ATMEGA chip is only an 8bit uC and 
+does not allow for more than 4 bytes of precision for floats or doubles.  This is not enough
+to allow for calculation to be performed and StrangeThings(tm) happen if you try and calculate
+distance per step of less than 4m.  This means that the balloon either has to be traveling 
+_really_ fast (jet stream fast) or the simulation steps have to be really slow.  Neither is ideal. 
+*/
+
+
+ /*
+1m @ 0°    = 000°00'00.0326?N, 000°00'00.0000?E = 0.000009,0
+1m @ 45°   = 000°00'00.0230?N, 000°00'00.0229?E = 0.000006,0.000006
+1m @ 90°   = 000°00'00.0000?N, 000°00'00.0323?E = 0.0,0.000009
+10m@90°	   = 000°00'00.0000?N, 000°00'00.3234?E = 0.0,0.000090
+*/
+ 
 void updateWind(float lat1, float lon1, float brng, float s) 
 {
-
-  
+ 
   float a = 6378137, b = 6356752.3142,  f = 1/298.257223563;  // WGS-84 ellipsiod
   float alpha1 = radians(brng);
   float sinAlpha1 = sin(alpha1);
@@ -60,9 +80,6 @@ void updateWind(float lat1, float lon1, float brng, float s)
   float lon2 = fmod((radians(lon1)+L+3*PI) , (2*PI)) - PI;  // normalise to -180...+180
 
   float revAz = atan2(sinAlpha, -tmp);  // final bearing, if required
-
- 
- 
   
   CurLat = degrees(lat2);
   CurLon = degrees(lon2);
@@ -71,8 +88,6 @@ void updateWind(float lat1, float lon1, float brng, float s)
  // if(DEBUG) Serial.print(windBearing);
   if(DEBUG) Serial.print(":: bearing:");
   if(DEBUG) Serial.print(brng, 2);
-  if(DEBUG) Serial.print(" :: s: ");
-  if(DEBUG) Serial.print(s);
   if(DEBUG) Serial.print(" :: d: ");
   if(DEBUG) Serial.print(distancePerStep,4);
   if(DEBUG) Serial.print(" :: CurLat: ");
