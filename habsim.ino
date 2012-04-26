@@ -57,7 +57,7 @@
 // Faster updates result in smaller distances per step being fed into the horizontal speed 
 // Equation.  Due to the ATMEGA's 8bit arcitecture and 4 byte floats, it looses precision
 // and Lon stops updating. 20Hz is the reccomneded value.
-#define SIM_HZ 20
+#define SIM_HZ 10
 
 
 // DEBUG status - output either the intended NMEA sentances, or debug data
@@ -76,7 +76,7 @@ int Status =0;
 // horizontal speeds by compensating for the time it takes to process the calculations
 // It can also be used to run the simulation at a fast-forward speed 
 // With the sim running at 20Hz, a simAccel value of 1.4 will give accurate speeds 
-float simAccel = 1.4;
+float simAccel = 50;
 
 time_t Now;
 char buf[128];
@@ -161,12 +161,14 @@ void loop()
 {
   Now = now();
   float windOffset = random(10);
-  //if (random(WIND_TURBULENCE)==1) windBearing += (windOffset-5)/10;
+  if (random(WIND_TURBULENCE)==1) windBearing += (windOffset-5)/10;
   if (windBearing>359) windBearing = 0;
   if (windBearing<0) windBearing = 359;
-  windBearing+=0.1;
-  //windBearing=0;
   
+  if (CurAlt>2000 && CurAlt<2100)  windBearing = random(359);
+
+
+
   LCDFlight();
     
   if (Status != 2)
