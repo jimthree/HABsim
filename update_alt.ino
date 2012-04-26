@@ -14,10 +14,9 @@ void update_alt()
   
   if (Status == 0)  // Ascent 
   {
-    // while Ascending, the speed is simply the ASCENT_RATE + a random modifier
+    // while Ascending, the speed is simply the ASCENT_RATE 
     CurSpeed =  ASCENT_RATE;
-    //fscale( 0.0, 36500, 0, ascentRate, altitude, -10)
-
+    
     // We currently use a linear model for asscent, based on the ASCENT_RATE
     CurAlt += (CurSpeed*simAccel)/SIM_HZ;
 
