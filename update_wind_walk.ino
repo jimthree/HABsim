@@ -20,21 +20,16 @@ void updateWindWalk(float oldLat, float oldLon, float brng, float s)
   float dlat1 = (cos(radians(brng))*s)*0.000009;
   float dlon1 = (sin(radians(brng))*s)*0.000009;
 
-  CurLat = oldLat + dlat1; 
-  CurLon = oldLon + dlon1;
+  CurLat += dlat1; 
+  CurLon += dlon1;
 
-  if(DEBUG) Serial.print(":: bearing:");
+  if(DEBUG) Serial.print("[dps:");
+  if(DEBUG) Serial.print(distancePerStep,2);
+  if(DEBUG) Serial.print(" :: brng:");
   if(DEBUG) Serial.print(brng, 2);
-  if(DEBUG) Serial.print(" :: s: ");
-  if(DEBUG) Serial.print(s,4);
-  if(DEBUG) Serial.print(" :: d: ");
-  if(DEBUG) Serial.print(distancePerStep,4);
-  if(DEBUG) Serial.print(" :: CurLat: ");
+  if(DEBUG) Serial.print(" :: CurLat:");
   if(DEBUG) Serial.print(CurLat,8);
-  if(DEBUG) Serial.print(" :: CurLon: ");
+  if(DEBUG) Serial.print(" :: CurLon:");
   if(DEBUG) Serial.print(CurLon,8); 
-  if(DEBUG) Serial.print(" :: dLat1: ");
-  if(DEBUG) Serial.print(dlat1,8);
-  if(DEBUG) Serial.print(" :: dLon1: ");
-  if(DEBUG) Serial.print(dlon1,8); 
+  if(DEBUG) Serial.print("]   ");
 }

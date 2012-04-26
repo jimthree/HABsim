@@ -29,7 +29,7 @@
 #define LOG_BASE 1.4142135623730950488
 #define LOG_POWER 5300.0
 
-#define PI 3.141592653589793
+//#define PI 3.141592653589793
 
 #define WIND_TURBULENCE 10 // chance of the wind changing the bearing by up to 1 degree per cycle of the simulation
 
@@ -40,7 +40,7 @@
 #define LAUNCH_ALT 203
 
 #define TERMINAL_VELOCITY 40 // meters per second
-#define ASCENT_RATE 1 // meters per second
+#define ASCENT_RATE 5 // meters per second
 #define DESCENT_RATE 5 // meters per second
 
 //should take 20secs to do 100m
@@ -54,10 +54,10 @@
 
 // SIM_HZ - the internal speed of the simulation
 // if you are going to change this then you will need to scale simAccel acordingly
-// Faster updates result in smaller distances per step being fed into the Vincenty Direct 
+// Faster updates result in smaller distances per step being fed into the horizontal speed 
 // Equation.  Due to the ATMEGA's 8bit arcitecture and 4 byte floats, it looses precision
-// and Lon stops updating.
-#define SIM_HZ 50
+// and Lon stops updating. 20Hz is the reccomneded value.
+#define SIM_HZ 20
 
 
 // DEBUG status - output either the intended NMEA sentances, or debug data
@@ -72,10 +72,11 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 int Status =0;
 
 // simAccel - an artifical acceleration factor for speeds.
-// If the sim runs at 50hz then the calculation time exceeds the idle time. we need to 
-// keep the simAccel value at 2.5 in order to maintain a acurate simulation of both the 
-// vertical and horizontal speeds. 
-float simAccel = 2.5;
+// This value can be used to maintain a acurate simulation of both the vertical and 
+// horizontal speeds by compensating for the time it takes to process the calculations
+// It can also be used to run the simulation at a fast-forward speed 
+// With the sim running at 20Hz, a simAccel value of 1.4 will give accurate speeds 
+float simAccel = 1.4;
 
 time_t Now;
 char buf[128];
@@ -90,7 +91,7 @@ float strat_wind_rate_mod = 0;
 //float lon_wind = 0;
 float windBearing = 0.0;
 
-float windSpeed = 5.0;
+float windSpeed = 10.0;
 
 float distancePerStep = 0.0;
 float Drag;
@@ -99,6 +100,7 @@ float Drag;
 long speedTest =0;
 float msTest =0;
 float speedTestResult = 0;
+
 
 byte balloon[8] = {B01110, B11111, B11111, B11111, B01110, B00100, B01110, B01110};
 byte chute[8] =   {B11111, B11111, B10001, B10001, B01010, B00100, B01110, B01110};
@@ -162,7 +164,7 @@ void loop()
   //if (random(WIND_TURBULENCE)==1) windBearing += (windOffset-5)/10;
   if (windBearing>359) windBearing = 0;
   if (windBearing<0) windBearing = 359;
-  windBearing+=0.01;
+  windBearing+=0.1;
   //windBearing=0;
   
   LCDFlight();
@@ -178,11 +180,12 @@ void loop()
       
       updateWindWalk(CurLat, CurLon, windBearing, distancePerStep); 
   
-      if(DEBUG) Serial.print(" :#");
+      if(DEBUG) Serial.print("[t");
       if(DEBUG) Serial.print(millis()-update_counter);
-      if(DEBUG) Serial.print(" :m/s ");
+      if(DEBUG) Serial.print(" :VsA ");
       if(DEBUG) Serial.print(speedTestResult);
-    
+      if(DEBUG) Serial.print("]   ");
+      
       update_counter =  millis();
       
       if(DEBUG) Serial.println();
@@ -193,18 +196,14 @@ void loop()
       if (!DEBUG) Output_NEMA(Now,CurLat,CurLon,CurAlt,windBearing,CurSpeed);
       output_counter =  millis();
     }
-  
-
   }
 
 
 
 
-
-  if (millis()>=(speedTest+1000))
+  if (millis()>=(speedTest+10000))
   {
-    //if(DEBUG) Serial.println();
-    speedTestResult = (CurAlt-msTest);
+    speedTestResult = (CurAlt-msTest)/10;
     msTest=CurAlt;   
     speedTest = millis();
   }

@@ -57,19 +57,17 @@ void update_alt()
     CurAlt -= (CurSpeed/SIM_HZ)*simAccel;
   }
 
-  if(DEBUG) Serial.print("alt: ");
+  if(DEBUG) Serial.print("[alt:");
   if(DEBUG) Serial.print(CurAlt);
-  if(DEBUG) Serial.print("m :: status: ");
+  if(DEBUG) Serial.print("m :: s:");
   if(DEBUG) Serial.print(Status);
-  if(DEBUG) Serial.print(" :: VSpeed: ");
+  if(DEBUG) Serial.print(" :: Vs:");
   if(DEBUG) Serial.print(CurSpeed);
-  if(DEBUG) Serial.print("m/s :: KpA: ");
-  if(DEBUG) Serial.print(CurKPA);
-  
-  if(DEBUG) Serial.print(" Drag: ");
+  if(DEBUG) Serial.print("m/s :: KpA:");
+  if(DEBUG) Serial.print(CurKPA,4);
+  if(DEBUG) Serial.print(":: Drag:");
   if(DEBUG) Serial.print(Drag);
-
-
+  if(DEBUG) Serial.print("]   ");
 }
 
 
