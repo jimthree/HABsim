@@ -19,7 +19,7 @@ void update_alt()
     //fscale( 0.0, 36500, 0, ascentRate, altitude, -10)
 
     // We currently use a linear model for asscent, based on the ASCENT_RATE
-    CurAlt += (CurSpeed/SIM_HZ)*simAccel;
+    CurAlt += (CurSpeed*simAccel)/SIM_HZ;
 
     // As we ascend the atmospheric pressure reduces.  Again we are using a linear aproximation
     // although there are well published equations for how KpA falls off with altitude. 
