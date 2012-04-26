@@ -8,7 +8,7 @@
 // 2. remove unused DEFINEs and Vars
 // 3. implement Cutdown
 // DONE 4. review descent code to use pressure func
-// 5. accurate timing 
+// DONE 5. accurate timing 
 // 6. simple button control for SIM rate
 // 7. bug with rendering '10' m/s descent rate
 // 8. rescale glyph graph on descent
@@ -57,14 +57,25 @@
 // Faster updates result in smaller distances per step being fed into the Vincenty Direct 
 // Equation.  Due to the ATMEGA's 8bit arcitecture and 4 byte floats, it looses precision
 // and Lon stops updating.
+#define SIM_HZ 50
 
-#define SIM_HZ 10
+
+// DEBUG status - output either the intended NMEA sentances, or debug data
+// 1 = debug, 0 = NMEA
 #define DEBUG 1
 
+// Define the pins used by the Liquid Crystal Display
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// Status hold the current state of the sim.
+// 0 = Ascent, 1 = Descent, 2 = Landed
 int Status =0;
 
-float simAccel = 10;
+// simAccel - an artifical acceleration factor for speeds.
+// If the sim runs at 50hz then the calculation time exceeds the idle time. we need to 
+// keep the simAccel value at 2.5 in order to maintain a acurate simulation of both the 
+// vertical and horizontal speeds. 
+float simAccel = 2.5;
 
 time_t Now;
 char buf[128];
@@ -154,22 +165,6 @@ void loop()
   windBearing+=0.01;
   //windBearing=0;
   
-  
-  
-  if (millis()>=(speedTest+10000))
-  {
-    if(DEBUG) Serial.println();
-    speedTestResult = (CurAlt-msTest)/10;
-    msTest=CurAlt;   
-    speedTest = millis();
-  }
-  
-  
-  
-  
-  
-  
-  
   LCDFlight();
     
   if (Status != 2)
@@ -178,15 +173,16 @@ void loop()
     {
       update_alt();
       
+      
       distancePerStep = (windSpeed/SIM_HZ)*simAccel;
       
       updateWindWalk(CurLat, CurLon, windBearing, distancePerStep); 
-
+  
       if(DEBUG) Serial.print(" :#");
       if(DEBUG) Serial.print(millis()-update_counter);
       if(DEBUG) Serial.print(" :m/s ");
       if(DEBUG) Serial.print(speedTestResult);
- 
+    
       update_counter =  millis();
       
       if(DEBUG) Serial.println();
@@ -197,24 +193,19 @@ void loop()
       if (!DEBUG) Output_NEMA(Now,CurLat,CurLon,CurAlt,windBearing,CurSpeed);
       output_counter =  millis();
     }
+  
+
+  }
+
+
+
+
+
+  if (millis()>=(speedTest+1000))
+  {
+    //if(DEBUG) Serial.println();
+    speedTestResult = (CurAlt-msTest);
+    msTest=CurAlt;   
+    speedTest = millis();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
